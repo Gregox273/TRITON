@@ -114,6 +114,7 @@ void setup(){
     //Serial1.begin(9600);
     //DEBUG
     Serial.begin(9600);
+    Serial1.begin(9600);
   
 }
 
@@ -127,16 +128,15 @@ void loop(){
 
 
 void parse(int pckt[]){
-  
-    if (Serial.find("U")){ //skip ahead to start of packet
-      if (Serial.available() >= 6){ //if there is at least one complete packet
-       
+  if (Serial1.available() > 9){
+    if (Serial1.find("U")){ //skip ahead to start of packet
+      if (Serial1.available() >= 5){ //if there is at least one complete packet
         for (int x = 0; x<= 4; x++){
-          pckt[x] = Serial.read();
-
+          pckt[x] = Serial1.read();
         }  
       }
     }
+  }
 }
     
 
