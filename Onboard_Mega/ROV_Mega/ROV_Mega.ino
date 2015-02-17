@@ -6,10 +6,17 @@ Authors: Gregory Brooks
 */
 
 #include <SPI.h>
+
+#define rs485 35   
+#define rs485Transmit    HIGH
+#define rs485Receive     LOW 
+
+
+
 //CS pins for each potentiometer (CS low to communicate with that potentiometer)
 int pots[5] = {2,3,4,5,6};
 int packet[5] = {127,127,127,127,127};//motor speeds, 127 = stop, more = forward, less = backward
-int revs[5] = {8,9,10,11,12};
+int revs[5] = {23,25,27,29,31};
 int fors[5] = {22,24,26,28,30};
 int lightpin = 32; //turn lights on/off
 int vpin = 7;//pin for supplying 5V to potentiomers themselves (not Vdd)
@@ -41,6 +48,8 @@ int lightpin = 32;//pin for turning bools[5] on/off
 
 
 void setup(){
+   pinMode(rs485, OUTPUT);//setup rs485 comms
+  digitalWrite(rs485, rs485Receive);
   for (int x = 0; x<=4; x++){
     pinMode(pots[x],OUTPUT); //set all output pins to outputs
     pinMode(revs[x],OUTPUT);
@@ -123,6 +132,7 @@ void loop(){
   parse(packet);
   for (int x = 0; x<=4; x++){
     update(x, packet[x]);
+  
   }
 }
 
@@ -133,13 +143,12 @@ void parse(int pckt[]){
       if (Serial1.available() >= 5){ //if there is at least one complete packet
         for (int x = 0; x<= 4; x++){
           pckt[x] = Serial1.read();
-
-        }  
+           
+        }
       }
     }
   }
-}
-    
+}    
 
 void update(int motor, int spd){    //update pot 'X' to wiper position 'X'
   int vX; //scalar motor speed (0 to 127)
@@ -155,11 +164,10 @@ void update(int motor, int spd){    //update pot 'X' to wiper position 'X'
   }
   digitalWrite(pots[motor],LOW);
   SPI.transfer(0);
-  SPI.transfer(vX/3);
-  if (vX !=64){
-    //Serial.println(vX);
-  }
+  SPI.transfer(vX);
   digitalWrite(pots[motor],HIGH);
+  //Serial.println(vX);
 
 
 }
+
