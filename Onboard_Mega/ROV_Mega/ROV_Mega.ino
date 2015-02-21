@@ -16,11 +16,13 @@ Authors: Gregory Brooks
 //CS pins for each potentiometer (CS low to communicate with that potentiometer)
 int pots[5] = {2,3,4,5,6};
 int packet[5] = {127,127,127,127,127};//motor speeds, 127 = stop, more = forward, less = backward
-int revs[5] = {23,25,27,29,31};
-int fors[5] = {22,24,26,28,30};
+int revs[5] = {31,29,27,25,23};
+int fors[5] = {30,28,26,24,22};
 int lightpin = 32; //turn lights on/off
 int vpin = 7;//pin for supplying 5V to potentiomers themselves (not Vdd)
 
+
+boolean debug = true; //serial debugging
 
 
 
@@ -122,7 +124,9 @@ void setup(){
   
     //Serial1.begin(9600);
     //DEBUG
-    Serial.begin(9600);
+    //if (debug){
+      Serial.begin(9600);
+    //}
     Serial1.begin(9600);
   
 }
@@ -132,17 +136,22 @@ void loop(){
   parse(packet);
   for (int x = 0; x<=4; x++){
     update(x, packet[x]);
-  
   }
 }
 
 
 void parse(int pckt[]){
-  if (Serial1.available() > 9){
+  while (Serial1.available() > 20){
+    int n = Serial1.read();//reduce latency
+  }
+  if (Serial1.available() > 10){
     if (Serial1.find("U")){ //skip ahead to start of packet
       if (Serial1.available() >= 5){ //if there is at least one complete packet
         for (int x = 0; x<= 4; x++){
           pckt[x] = Serial1.read();
+          if (debug){
+            Serial.println(pckt[x]);
+          }
            
         }
       }
@@ -156,17 +165,30 @@ void update(int motor, int spd){    //update pot 'X' to wiper position 'X'
     vX = 127 - spd;
     digitalWrite(fors[motor],LOW);
     digitalWrite(revs[motor],HIGH);
+    if (motor == 4){
+    Serial.println("rev");
+    }
+                                                                                          
   }
   else if (spd >= 127){
     vX = spd - 127;
     digitalWrite(revs[motor],LOW);
     digitalWrite(fors[motor],HIGH);
+    if (motor == 4){
+    Serial.println("for");
+    }
+
   }
   digitalWrite(pots[motor],LOW);
   SPI.transfer(0);
   SPI.transfer(vX);
   digitalWrite(pots[motor],HIGH);
-  //Serial.println(vX);
+  if (debug){
+    Serial.print("Motor ");
+    Serial.print(motor);
+    Serial.print(": ");
+    Serial.println(vX);
+  }
 
 
 }
